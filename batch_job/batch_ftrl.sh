@@ -12,7 +12,10 @@ cd /projectnb/aclab/luca/trainit
 module load python3/3.10.12 cuda/12.2
 source env/bin/activate
 python check_env.py
-python train_jax.py logging.wandb_project=log1
+
+# test sgd optimizer
+python train_jax.py logging.wandb_project=log1 optimizer=ftrl logging.wandb_name=ftrl_b2_is_b1_squared
+
 
 # 2024/06/07
 # 1. with/out pytorch initialization

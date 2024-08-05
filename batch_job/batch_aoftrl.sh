@@ -8,11 +8,14 @@
 
 ### Latest batch script updated on 2024/05/14.
 
-cd /projectnb/aclab/luca/trainit
+cd /projectnb/aclab/luca/trainit_hint
 module load python3/3.10.12 cuda/12.2
 source env/bin/activate
 python check_env.py
-python train_jax.py logging.wandb_project=log1
+
+# test oftrl optimizer
+python train_jax.py logging.wandb_project=luca_hints logging.wandb_name=hint_16_aoftrl_no_crl  logging.wandb_group=hint_experiments_adaptive optimizer=aoftrl optimizer.correlation=False train.use_cheat_hints=False train.use_amp=False optimizer.lr_config.lr=0.0003 optimizer.beta3=0.8 optimizer.hint_method=16
+#optimizer.c=0.1 optimizer.correlation=True train.use_cheat_hints=False optimizer.lr_config.lr=0.001 optimizer.hint_method=15 
 
 # 2024/06/07
 # 1. with/out pytorch initialization

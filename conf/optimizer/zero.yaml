@@ -1,0 +1,6 @@
+name: zero
+lr_config:
+  lr: 3e-2
+  schedule: linear
+  warmup: 5000
+  max_steps: 50000

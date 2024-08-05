@@ -1,5 +1,6 @@
 train:
   max_steps: 50000
+  #max_step: 3125
 
   # clip the gradient to have l2 norm at most this value
   gradient_clip_val: 10.0
@@ -11,10 +12,25 @@ train:
   wrap_o2nc: False
 
   # random scaling options. supports "exponential".
-  random_scaling: null
+  random_scaling: exponential
   random_scaling_seed: 0  # to be deprecated. we should only use one global random seed and generate sub-keys by jr.split()
 
   # whether to use automatic mixed precision
   use_amp: True
   # value to cast to in mixed precision training.
   precision: float16
+
+  #boolean whether to use a second batch for the second gradient evaulation for the cheating method
+  use_second_batch_cheat: false
+
+  #used for testing wheter setting h_t = g_{t+1} works
+  #if True it takes a step with hint zero and uses the gradients at that point for the hint (uses 2x gradient evaluations)
+  #at the previous point
+  use_cheat_hints: False
+
+  #boolean if we should use batch_size of 32 instead of 2, it will average the grads over
+  #different rounds (16). remember to scale lr by root(batchsize) --> e.g. existing tuned lr * root(16)
+  #you have to reduce the number_steps by a factor of 1/16, you only update the model number_steps / 16
+  accumulate_gradient: False
+
+  accumulation_steps: 32 #how many batches if accumulate_gradient is True

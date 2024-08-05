@@ -51,7 +51,7 @@ def adamw(
     Returns:
         A `GradientTransformation` object.
     """
-
+    weight_decay = 0
     use_pytree_wd = type(weight_decay) != float
 
     def init_fn(params):
@@ -84,12 +84,12 @@ def adamw(
         # Compute one-step update: -eta * [mu / (eps+sqrt(nu)) + lam * params]
         if not use_pytree_wd:
             new_updates = jtu.tree_map(
-                lambda m, v, p: -eta * (m/(eps+jnp.sqrt(v)) + weight_decay*p),
+                lambda m, v, p: -eta * (m/(eps+jnp.sqrt(v)) + 0*weight_decay*p),
                 mu_hat, nu_hat, params
             )
         else:
             new_updates = jtu.tree_map(
-                lambda m, v, p, wd: -eta * (m/(eps+jnp.sqrt(v)) + wd*p),
+                lambda m, v, p, wd: -eta * (m/(eps+jnp.sqrt(v)) + 0*wd*p),
                 mu_hat, nu_hat, params, weight_decay
             )
         return new_updates, AdamWState(

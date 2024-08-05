@@ -1,0 +1,8 @@
+name: aoomd
+beta: 0.9 
+beta_2: 0.9
+D:
+  lr: 0.01
+  schedule: linear
+  warmup: 5000
+  max_steps: 50000

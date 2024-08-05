@@ -1,9 +1,9 @@
 name: gpt
 
 # global architecture
-dim: 768                  # embedding dimension of input tokens.
-num_heads: 12             # number of heads in multi-head attention.
-num_blocks: 12            # number of stacked transformer blocks.
+dim: 768                  # embedding dimension of input tokens. 768
+num_heads: 12             # number of heads in multi-head attention. 12
+num_blocks: 12            # number of stacked transformer blocks. 12
 context_length: 1024      # maximum lenght of input tokens.
 rescale_residuals: False  # will not be used in new implementation.
 

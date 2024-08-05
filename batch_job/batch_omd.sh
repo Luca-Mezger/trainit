@@ -12,7 +12,17 @@ cd /projectnb/aclab/luca/trainit
 module load python3/3.10.12 cuda/12.2
 source env/bin/activate
 python check_env.py
-python train_jax.py logging.wandb_project=log1
+
+# test sgd optimizer
+#python train_jax.py logging.wandb_project=log1 logging.wandb_name=oomd_exp optimizer=oomd optimizer.lr_config.lr=1e-2 train.random_scaling=exponential
+#python train_jax.py logging.wandb_project=log1 logging.wandb_name=oomd_exp optimizer=oomd optimizer.lr_config.lr=1e-3 train.random_scaling=exponential
+#python train_jax.py logging.wandb_project=log1 logging.wandb_name=oomd_exp optimizer=oomd optimizer.lr_config.lr=1e-4 train.random_scaling=exponential
+#python train_jax.py logging.wandb_project=log1 logging.wandb_name=oomd optimizer=oomd optimizer.lr_config.lr=1e-2 
+#python train_jax.py logging.wandb_project=log1 logging.wandb_name=oomd optimizer=oomd optimizer.lr_config.lr=1e-3
+#python train_jax.py logging.wandb_project=log1 logging.wandb_name=oomd optimizer=oomd optimizer.lr_config.lr=1e-4
+#python train_jax.py optimizer=oomd optimizer.lr_config.lr=0.001 optimizer.beta=0.5 logging.wandb_project=log1 logging.wandb_name=oomd_no_exp_beta=0.5
+python train_jax.py optimizer=oomd logging.wandb_project=log1 logging.wandb_name=oomd_h_is_combo
+
 
 # 2024/06/07
 # 1. with/out pytorch initialization

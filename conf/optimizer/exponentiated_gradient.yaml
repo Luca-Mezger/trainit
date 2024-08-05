@@ -1,0 +1,7 @@
+name: exponentiated_gradient
+lr_config:
+  lr: 0.03
+  schedule: linear
+  warmup: 5000
+  max_steps: 50000
+psi_function: 'quadratic'

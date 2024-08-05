@@ -32,6 +32,7 @@ def train(learner, loss_fn, params, num_steps):
         })
 
 
+
 def simple_train(learner, loss_fn, params, num_steps):
     opt_state = learner.init(params)
     for i in range(num_steps):

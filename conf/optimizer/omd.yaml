@@ -1,0 +1,7 @@
+name: omd
+lr_config:
+  lr: 0.001
+  schedule: linear
+  warmup: 5000
+  max_steps: 50000
+beta: 0.9

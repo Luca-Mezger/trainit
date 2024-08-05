@@ -8,11 +8,10 @@
 
 ### Latest batch script updated on 2024/05/14.
 
-cd /projectnb/aclab/luca/trainit
+cd /projectnb/aclab/luca/trainit_hint
 module load python3/3.10.12 cuda/12.2
 source env/bin/activate
 python check_env.py
-python train_jax.py logging.wandb_project=log1
 
 # 2024/06/07
 # 1. with/out pytorch initialization

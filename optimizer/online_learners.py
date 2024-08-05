@@ -486,7 +486,7 @@ def kt_bettor(
     log = KTBettorLog()
 
     def init_fn(params):
-        sum_grad = jtu.tree_map(jnp.zeros_like, params)
+        sum_grad = jtu.tree_map(jnp.zeros_like, params) #initialize as zero
         wealth = jtu.tree_map(jnp.zeros_like, params)
         return KTBettorState(
             sum_grad=sum_grad,
@@ -500,7 +500,7 @@ def kt_bettor(
         # i.e., sn -> sn/G.
         updates = tree_scalar_multiply(updates, 1/G)
         count_inc = optax.safe_int32_increment(state.count)
-        sum_grad = tree_add(state.sum_grad, updates)
+        sum_grad = tree_add(state.sum_grad, updates) #elementwise addition (sums all updates)
         wealth = tree_subtract(state.wealth, tree_multiply(updates, params))
         new_params = jtu.tree_map(
             lambda St, Wt: - St / count_inc * (eps + Wt), sum_grad, wealth)

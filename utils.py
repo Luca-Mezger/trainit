@@ -70,6 +70,14 @@ def tree_l2_norm(tree):
         )
     )
 
+def tree_squared_l2_norm(tree):
+    """Returns the sum of squares across the entire tree, without taking the square root."""
+    return jtu.tree_reduce(
+        lambda x, y: x + y, 
+        jtu.tree_map(lambda x: jnp.sum(x * x), tree)
+    )
+
+
 
 # TODO: deprecated, to be removed
 def tree_norm(tree):

@@ -6,9 +6,9 @@ from jax import random as jr
 from jax import tree_util as jtu
 import chex
 import optax
-from optax import Updates, Params, OptState, ScalarOrSchedule, GradientTransformation
+from optax import Updates, Params, OptState, ScalarOrSchedule, GradientTransformation, GradientTransformationExtraArgs
 from typing import Any, Tuple, NamedTuple, Optional, Callable
-from online_learners import OnlineLearner
+from online_learners import OnlineLearner, OnlineLearnerExtraArgs
 import sys
 sys.path.append('../trainit')
 from utils import tree_scalar_multiply, tree_norm
@@ -34,7 +34,7 @@ class ScaleByRandomState(NamedTuple):
 def scale_by_random(
     sample_fn: SampleFunction,
     seed: int = 0,
-) -> GradientTransformation:
+) -> GradientTransformationExtraArgs:
     """Scales the update by a random variable.
     
     Args:
@@ -49,20 +49,20 @@ def scale_by_random(
         del params
         return ScaleByRandomState(key=jr.PRNGKey(seed))
     
-    def update_fn(updates, state, params=None):
+    def update_fn(updates, state, params=None, **kwargs):
         del params
         key1, key2 = jr.split(state.key)
         scaling = sample_fn(key1)
         new_updates = tree_scalar_multiply(updates, scaling)
         return new_updates, ScaleByRandomState(key=key2)
     
-    return GradientTransformation(init_fn, update_fn)
+    return GradientTransformationExtraArgs(init_fn, update_fn)
 
 
 def scale_by_exponential(
     lam: float = 1.0,
     seed: int = 0,
-) -> GradientTransformation:
+) -> GradientTransformationExtraArgs:
     """Scales the update by exponential random variable with mean = lam.
 
     Args:
@@ -83,12 +83,13 @@ class OnlineNonconvexState(NamedTuple):
     key: chex.Array
     logging: logstate.Log
 
-
+# deprecated: please use deterministic_online_nonconvex together with wrap_random_scaling, where
+# the former handles wrapping online learners and the latter handles random scaling.
 def online_nonconvex(
-    online_learner: OnlineLearner,
+    online_learner: OnlineLearnerExtraArgs,
     random_scaling: SampleFunction = None,
     seed: int = 0,
-) -> GradientTransformation:
+) -> GradientTransformationExtraArgs:
     """General Online-to-non-convex conversion.
 
     For simplicity of logging message, this function combines `scale_by_random` and `wrap_online_learner`.
@@ -125,10 +126,10 @@ def online_nonconvex(
             logging=logging
         )
     
-    def update_fn(updates, state, params=None):
+    def update_fn(updates, state, params=None, hint=None):
         del params
         # Update online learner.
-        ol_params, ol_state = online_learner.update(updates, state.ol_state, state.ol_params)
+        ol_params, ol_state = online_learner.update(updates, state.ol_state, state.ol_params, hint)
         norm_pre_scaling = tree_norm(ol_params)
         # Apply random scaling.
         key, new_key = jr.split(state.key)
@@ -146,7 +147,7 @@ def online_nonconvex(
             })
         )
     
-    return GradientTransformation(init_fn, update_fn)
+    return GradientTransformationExtraArgs(init_fn, update_fn)
 
 
 class DeterministicOnlineNonconvexState(NamedTuple):
@@ -156,8 +157,8 @@ class DeterministicOnlineNonconvexState(NamedTuple):
 
 
 def deterministic_online_nonconvex(
-    online_learner: OnlineLearner
-) -> GradientTransformation:
+    online_learner: OnlineLearnerExtraArgs
+) -> GradientTransformationExtraArgs:
     """Wraps an OnlineLearner object into a GradientTransformation object.
 
     Stores the online learner parameters, which is different from the model parameter. 
@@ -170,16 +171,19 @@ def deterministic_online_nonconvex(
         A wrapped `GradientTransformation` object.
     """
 
-    def init_fn(params):
+    def init_fn(params, init_zero=True):
+        """If init_zero is true, initialize to zero array; otherwise, initialize to params."""
+        if init_zero:
+            params = jtu.tree_map(jnp.zeros_like, params)
         return DeterministicOnlineNonconvexState(
-            params=params, state=online_learner.init(params))
+            params=jtu.tree_map(jnp.zeros_like, params), state=online_learner.init(params))
     
-    def update_fn(updates, state, params=None):
+    def update_fn(updates, state, params=None, hint=None):
         del params
-        new_params, state = online_learner.update(updates, state.state, state.params)
+        new_params, state = online_learner.update(updates, state.state, state.params, hint)
         return new_params, DeterministicOnlineNonconvexState(params=new_params, state=state)
 
-    return GradientTransformation(init_fn, update_fn)
+    return GradientTransformationExtraArgs(init_fn, update_fn)
 
 
 class WrapRandomScalingState(NamedTuple):
@@ -190,10 +194,10 @@ class WrapRandomScalingState(NamedTuple):
 
 
 def wrap_random_scaling(
-    gradient_transformation: GradientTransformation,
+    gradient_transformation: GradientTransformationExtraArgs,
     random_scaling: Optional[str] = None,
     seed: int = 0,
-) -> GradientTransformation:
+) -> GradientTransformationExtraArgs:
     
     random_scaling_list = [
         "exponential",
@@ -215,7 +219,7 @@ def wrap_random_scaling(
                 "update/params_norm": jnp.zeros([]),
                 "update/update_norm_pre_scaling": jnp.zeros([]),
                 "update/update_norm_post_scaling": jnp.zeros([]),
-                "update/random_scaling": jnp.zeros([]),
+                "update/random_scaling": jnp.ones([]),
             }
 
         def __call__(self, **kargs):
@@ -238,8 +242,8 @@ def wrap_random_scaling(
             logging=logger(),
         )
     
-    def update_fn(updates, state, params):
-        updates, opt_state = gradient_transformation.update(updates, state.opt_state, params)
+    def update_fn(updates, state, params=None, hint=None):
+        updates, opt_state = gradient_transformation.update(updates, state.opt_state, params, hint)
         key, new_key = jr.split(state.key)
         scalar = scale_fn(key)
         new_updates = tree_scalar_multiply(updates, scalar)
@@ -255,4 +259,4 @@ def wrap_random_scaling(
             })
         )
     
-    return GradientTransformation(init_fn, update_fn)
+    return GradientTransformationExtraArgs(init_fn, update_fn)

@@ -1,11 +1,11 @@
-name: adamw
+name: oftrl
 lr_config:
-  lr: 0.001
+  lr: 0.0003
   schedule: linear
   warmup: 5000
   max_steps: 50000
 beta1: 0.9
 beta2: 0.999
-weight_decay: 0.0
-debias_beta1: True
-debias_beta2: True
+beta3: 0.9
+hint_method: 3
+cheating: False
