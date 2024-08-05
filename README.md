@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # LLM Training Pipeline
 
 ### Table of Content
@@ -121,3 +122,7 @@ The current configuration is recorded from the optimal Adam benchmark. You can e
 1. Implement your optimizer in `optimizer/NAME.py`.
 2. Create a configuration file `conf/optimizer/NAME.yaml`.
 3. In the main pipeline `train_jax.py`, add your optimizer in the `init_optimizer` component.
+=======
+# trainit
+Copy of https://github.com/ZQZCalin/trainit
+>>>>>>> dfe7652a9ca96aa21be83c0a5c67f0a8858a2377
